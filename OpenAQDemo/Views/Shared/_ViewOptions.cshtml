@@ -1,0 +1,236 @@
+﻿@using OpenAQDemo.ViewModels.Options
+@model OptionsViewModel
+
+<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+<script type="text/javascript">
+
+    // Clear the tables with the results
+    function ClearResults() {
+        $('#tableResults').html('');
+        $('#selectionResults').html('');
+    }
+    // Show where the measurements came for each country
+    function showCountryMeasurements(countryCode) {
+               
+         $.ajax({
+            url: '@Url.Action("ShowCountryMeasurements", "Options")',
+            datatype: 'JSON',
+            type: 'POST',
+            data: { countryCode },
+            success: function (data) {
+
+                // Get data
+                var measurementsList = jQuery.parseJSON(data);
+
+                // if no results then exit
+                if (jQuery.isEmptyObject(measurementsList)) {
+                    return;
+                }
+
+                // Prepare list with table results
+                var total = 0;
+                var tableStr = "<table border=1>";
+                tableStr += "<tr><th>Index</th><th>City</th><th>Count</th></tr>";
+                $.each(measurementsList.Measurements, function (ndx) {
+                    tableStr +=
+                        "<tr><td>" + ndx +
+                        "</td><td>" + measurementsList.Measurements[ndx].name +
+                        "</td><td>" + measurementsList.Measurements[ndx].count +
+                        "</td></tr>";
+
+                    total += measurementsList.Measurements[ndx].count;
+                });
+                tableStr += "<tr><td>&nbsp;</td><td><strong>Total</strong></td><td><strong>" + total + "</strong></td></tr>";
+                tableStr += "</table>";
+                $('#selectionResults').html(tableStr);
+
+            },
+            error: function (error) {
+                // Clear results
+                $('#selectionResults').html('');
+
+                alert(error.responseText);
+            }
+        });
+
+    }
+
+    $(document).ready(function () {
+
+        // Load city data
+        function displayCities() {
+
+             $.ajax({
+                url: '@Url.Action("GetCities", "Options")',
+                datatype: 'JSON',
+                type: 'POST',
+                data: { },
+                success: function (data) {
+
+                    // Get data
+                    var cities = jQuery.parseJSON(data);
+
+                    // if no results then exit
+                    if (jQuery.isEmptyObject(cities)) {
+                        return;
+                    }
+
+                    // Prepare list with table results
+                    var tableStr = "<table border=1>";
+                    tableStr += "<tr><th>Index</th><th>City</th><th>Country Code</th><th>Count</th></tr>";
+                    $.each(cities.Cities, function (ndx) {
+                        tableStr +=
+                            "<tr><td>" + ndx +
+                            "</td><td>" + cities.Cities[ndx].city +
+                            "</td><td>" + cities.Cities[ndx].country +
+                            "</td><td>" + cities.Cities[ndx].count +
+                            "</td></tr>";
+                    });
+                    tableStr += "</table>";
+                    $('#tableResults').html(tableStr);
+
+                    // Clear selection results 
+                    $('#selectionResults').html('');
+
+                },
+                 error: function (error) {
+                     // Clear results
+                     ClearResults();
+
+                    alert(error.responseText);
+                }
+             });
+
+        }
+
+        // Load country data
+        function displayCountries() {
+
+            $.ajax({
+                url: '@Url.Action("GetCountries", "Options")',
+                datatype: 'JSON',
+                type: 'POST',
+                data: { },
+                success: function (data) {
+
+                    // Get data
+                    var countries = jQuery.parseJSON(data);
+
+                    // if no results then exit
+                    if (jQuery.isEmptyObject(countries)) {
+                        return;
+                    }
+
+                    // Prepare list with table results
+                    var tableStr = "<table border=1>";
+                    tableStr += "<tr><th>Index</th><th>Country</th><th>Country Code</th><th>Count</th><th>Cities</th></tr>";
+                    $.each(countries.Countries, function (ndx) {
+                        tableStr +=
+                            "<tr><td>" + ndx +
+                            "</td><td>" + countries.Countries[ndx].name +
+                            "</td><td>" + countries.Countries[ndx].code +
+                            "</td><td><a href=\"#\" onclick=\"javascript:showCountryMeasurements('"+ countries.Countries[ndx].code +"');return false;\">" + countries.Countries[ndx].count + "</href>" +
+                            "</td><td>" + countries.Countries[ndx].cities +
+                            "</td></tr>";
+                    });
+                    tableStr += "</table>";
+                    $('#tableResults').html(tableStr);
+
+                },
+                 error: function (error) {
+                     // Clear results
+                     ClearResults();
+
+                    alert(error.responseText);
+                }
+            });
+
+        }
+
+        // Do something with user's selection
+        function DisplaySelection(selectionIndex) {
+            switch (selectionIndex) {
+                case 1:
+                    displayCities();
+                    break;
+                case 2:
+                    displayCountries();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Populate the options drop down
+        function populateOptions() {
+            $.ajax({
+                url: '@Url.Action("GetOptions", "Options")',
+                datatype: 'JSON',
+                type: 'POST',
+                data: { },
+                success: function (data) {
+
+                    // Get data
+                    var options = jQuery.parseJSON(data);
+
+                    // If no results then exit
+                    if (jQuery.isEmptyObject(options)) {
+                        return;
+                    }
+
+                    // Prepare list of options
+                    $('#optionsList').append($('<option>', { value: 0, text: 'Please select...' }));
+                    $.each(options.Options, function () {
+                        $('#optionsList').append($('<option>', { value: this['Key'], text: this['Value']}));
+                    })
+
+                },
+                error: function (error) {
+
+                    // Clear results
+                    ClearResults();
+
+                    alert(error.responseText);
+                }
+            });
+        }
+
+        // Setup listener for options dropdown
+        $('#options').on('change', function () {
+            // Convert to number
+            var selectionIndex = Number($(this).find(":selected").val());            
+            // Check for number
+            if (!isNaN(selectionIndex) && selectionIndex > 0) {
+                // If user selection is valid then call display
+                DisplaySelection(selectionIndex);
+            } else {
+                // Clear results
+                ClearResults();
+            }
+        });
+
+        // Populate options drop down
+        populateOptions();
+
+    });
+
+</script>
+
+
+<div id="options">
+Select an option
+    <select id="optionsList">
+        
+    </select>
+</div>
+
+<div style="display: table;" id="divResults">
+    <div style="float:left;" id="tableResults">
+
+    </div>
+
+    <div style="float:left; margin-left: 20px;" id="selectionResults">
+       
+    </div>
+</div>
+
