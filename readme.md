@@ -8,7 +8,7 @@ Once you run the demo, you'll see one dropdown with two options: Cities and Coun
 
 When you select Cities you will be presented with a table, nothing exciting is shown here other than raw data coming back from the API.
 
-When you select Countries you will see a list of countries and the total air quality masurements in each one, but you will notice each measurement is a link. If you click it you'll see the individual cities in that country displayed in a separate table where the measurements came from (*zoom out for the results to fit*). Due to a restrictive set of data this options works best with:
+When you select Countries you will see a list of countries and the total air quality masurements in each one, but you will notice each measurement is a link. If you click it you'll see the individual cities in that country displayed in a separate table where the measurements came from (*zoom out for the results to fit*). Due to a restrictive set of data this option works best with:
 
  - Australia
  - Austria
